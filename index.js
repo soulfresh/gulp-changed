@@ -26,7 +26,15 @@ const sha1 = buf => crypto.createHash('sha1').update(buf).digest('hex');
 function compareLastModifiedTime(stream, cb, sourceFile, targetPath) {
 	fs.stat(targetPath, (err, targetStat) => {
 		if (!fsOperationFailed(stream, sourceFile, err)) {
-			if (sourceFile.stat && sourceFile.stat.mtime > targetStat.mtime) {
+			if (!sourceFile.stat) {
+				fs.stat(sourceFile.path, function (err, sourceStat) {
+					if (!fsOperationFailed(stream, sourceFile, err)) {
+						if (sourceStat.mtime > targetStat.mtime) {
+							stream.push(sourceFile);
+						}
+					}
+				});
+			} else if (sourceFile.stat && sourceFile.stat.mtime > targetStat.mtime) {
 				stream.push(sourceFile);
 			}
 		}
